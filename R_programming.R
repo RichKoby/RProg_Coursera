@@ -1,3 +1,92 @@
+#------- Coursera - R Programming -------#
+#--- Background Material 0.4 - Writing Code / Setting Your Working Directory (Windows) -------#
+getwd()
+dir()
+ls()
+setwd("/home/a737366/coursera")
+dir()
+
+#----- these 2 functions saved as mycode.R ----#
+myfunction <- function() {
+  x <- rnorm(100)
+  mean(x)
+}
+
+second <- function(x) {
+  x + rnorm(length(x))
+}
+
+myfunction()
+
+source("mycode.R")
+ls ()
+second(4)
+
+#===== Week 1 ===========#
+#--------------- 1_3 R Console Input and Evaluation ------------#
+x <- 1
+print(x)  # explicit printing
+x         # auto-printing
+msg <- "hello"
+x <- ## Incomplete expression
+x <- 1:20
+x
+#--------------- 1_4 Data Types - R Objects and Attributes ------------#
+#Objects:  atomic: character, numeric, integer, complex, logical (T/F)  basic: vectors (1 atomic class) or lists
+# empty vectors may be created with vector()
+#Numbers:  are numeric, unless explicitly defined as integer (1L, 10L);  Inf is infinity;  NaN is not a number
+#Attributes:  are part of objects such as:  names, dimnames, dimensions (matrices, arrays), class, length, other user-def attribs, access with attributes()
+#--------------- 1_5 Data Types - Vectors and Lists ------------#
+x <- c(0.5, 0.6)
+x <- c(TRUE, FALSE)
+x <- c(T,F)
+x <- c("a","b","c")
+x <- 9:29
+x <- c(1+0i,2+4i)
+x <- vector("numeric",length=10)
+x
+# concatting different types
+y <- c(1.7,"a")  ## character is least common denom
+y <- c(TRUE, 2)  ## numeric
+y <- c("a",TRUE) ## character
+# coercion
+x <- 0:6
+class(x)
+as.numeric(x)   # looks like integer, but actually is numeric
+as.logical(x)
+as.character(x)
+x <- c("a","b","c")
+as.numeric(x)
+as.logical(x)
+as.complex(x)
+# lists
+x <- list(1,"a",TRUE,1 + 4i)
+x
+#--------------- 1_6 Data Types - Matrices ------------#
+m <- matrix(nrow=2, ncol=3)
+m
+dim(m)
+attributes(m)
+m <- matrix(1:6, nrow=2,ncol=3)
+m
+m <- 1:10
+dim(m) <- c(2,5)
+m
+# column binding and row binding
+x <- 1:3
+y <- 10:12
+cbind(x,y)
+rbind(x,y)
+#--------------- 1_7 Data Types - Factors ------------#
+# factors are unordered or ordered, treated specially by modeling functions like lm() and glm()
+x <- factor(c("yes","yes","no","yes","no"))
+x
+table(x)    # frequency count on each level
+unclass(x)
+x <- factor(c("yes","yes","no","yes","no"), levels = c("yes","no"))
+x
+unclass(x)
+
 #------- 1.9 Data Types - Missing Values -----#
 # is.na() - missing values
 # is.nan() - undefined mathematical operations
