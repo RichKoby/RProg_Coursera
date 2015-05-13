@@ -236,3 +236,185 @@ x / y
 x %*% y  ## true matrix multiplication
 #------- 1.22 Intro to Swirl - Stats with Interactive R Learning ---#
 # swirlstats.com
+
+#===== Week 2 ===========#
+#------- 2.2 Control Structures - If-Else ---#
+x <- 4
+if(x > 3) {
+  y <- 10
+} else {
+  y <- 0
+}
+y <- if(x > 3) {
+  10
+} else {
+  0
+}
+#------- 2.3 Control Structures - For Loops ---#
+for(i in 1:10) {
+  print(i)
+}
+x <- c("a","b","c","d")
+for(i in 1:4) {
+  print(x[i])
+}
+for(i in seq_along(x)) {
+  print(x[i])
+}
+for(letter in x) {
+  print(letter)
+}
+for(i in 1:4) print(x[i])
+# Nested for loops
+x <- matrix(1:6, 2, 3)
+x
+for(i in seq_len(nrow(x))) {
+  for(j in seq_len(ncol(x))) {
+    print (x[i,j])
+  }
+}
+#------- 2.4 Control Structures - While Loops ---#
+count <- 0
+while(count < 10){
+  print(count)
+  count <- count + 1
+}
+z <- 5
+while(z >= 3 && z <= 10) {
+  print(z)
+  coin <- rbinom(1,1,0.5)
+  if(coin == 1) { ## random walk
+    z <- z + 1
+  } else {
+    z <- z - 1
+  }
+}
+#------- 2.5 Control Structures - Repeat, Next, Break ---#
+# repeat
+x0 <- 1
+tol <- 1e - 8
+repeat {
+  x1 <- computeEstimate()
+  if(abs(x1-x0) < tol) {
+    break
+  } else {
+    x0 <- x1
+  }
+}
+# next, return
+for(i in 1:100) {
+  if(i <= 20) {
+    ## skip the first 20 iterations
+    next
+  }
+  ## do something here
+}
+# return signals that a function should exit and return a given value
+#------- 2.6 Your First R Function ---#
+add2 <- function(x,y) {
+  x + y
+}
+add2 (5,8)
+above10 <- function(x){
+  use <- x > 10
+  x[use]
+}
+above <- function(x, n=10){
+  use <- x > n
+  x[use]
+}
+x <- 1:20
+above(x)
+
+columnmean <- function(y, removeNA = TRUE) {
+  nc <- ncol(y)
+  means <- numeric(nc)
+  for(i in 1:nc) {
+    means[i] <- mean(y[,i], na.rm = removeNA)
+  }
+  means
+}
+columnmean(airquality)
+columnmean(airquality,FALSE)
+#------- 2.7 Functions - Part 1 ---#
+# functions can be nested within functions or passed as args to other functions
+# function args can be positional or by name
+mydata <- rnorm(100)
+sd(mydata)
+sd(x=mydata)
+sd(x=mydata,na.rm=FALSE)
+sd(na.rm=F,x=mydata)
+sd(na.rm=F,mydata)  # not recommended
+# arguments can be partially matched
+#------- 2.8 Functions - Part 2 ---#
+# NULL is a common argument that can be assigned
+# Lazy evaluation - only evaluated if needed
+f <- function(a,b) {
+  a^2
+}
+f(2)
+f <- function(a,b) {
+  print(a)
+  print(b)
+}
+f(45)   # 45 is printed, then error message
+# the ... Argument
+myplot <- funtion(x,y,type="l",...) {
+  plot(x,y,type=type,...)
+}
+# Generic functions use ... so that extra arguments can be passed as methods
+mean
+function (x,...)
+UseMethod("mean")
+# ... is necessary when number of args is not known in advance
+args(paste)
+function (...,sep=" ", collapse=NULL)
+args(cat)
+function (...,file="",sep=" ",fill=FALSE,labels=NULL,append=FALSE)
+# any args appearing after ... on arg list must be named explicitly and cannot be partially matched
+#------- 2.9 Scoping Rules - Symbol Binding ---#
+#------- 2.10 Scoping Rules - R Scoping Rules ---#
+#------- 2.11 Scoping Rules - Optimization Example ---#
+#------- 2.12 Coding Standards ---#
+#1. Always write code in text file/text editor
+#2. Indent your code (4+ spaces)
+#3. Limit width of code (80 columns?)
+#4. Limit the length of your functions
+#------- 2.13 Dates and Times ---#
+# Date Class, Times represented by POSIXct or POSIXlt class
+# dates are # of days since 1970-01-01, Times are # seconds since 1970-01-01
+x <- as.Date("1970-01-01")
+x
+unclass(x)
+unclass(as.Date("1970-01-02"))
+# POSIXct is a large integer
+# POSIXlt is a list and stores a bunch of otehr info like day of week, day of year, month, day of month
+# functions that work on dates:  weekdays, months quarters
+x <- Sys.time()
+x
+p <- as.POSIXlt(x)
+names(unclass(p))
+p$sec
+p <- as.POSIXct(x)
+p   # so this was already in POSIXct format
+unclass(p)
+p$sec
+p <- as.POSIXlt(x)
+p$sec
+# strptime function to convert formated date/times to time object
+datestring <- c("January 10, 2012 10:40","December 9, 2011 9:10")
+x <- strptime(datestring,"%B %d, %Y %H:%M")
+x
+class(x)
+x <- as.Date("2012-01-01")
+y <- strptime("9 Jan 2011 11:34:21", "%d %b %Y %H:%M:%S")
+x - y
+x <- as.POSIXlt(x)
+x - y
+# keeping track of leap years, etc
+x <- as.Date("2012-03-01")
+y <- as.Date("2012-02-28")
+x - y
+x <- as.POSIXct("2012-10-25 01:00:00")
+y <- as.POSIXct("2012-10-25 06:00:00", tz="GMT")
+x - y
