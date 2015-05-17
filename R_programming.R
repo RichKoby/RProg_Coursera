@@ -373,6 +373,23 @@ args(cat)
 function (...,file="",sep=" ",fill=FALSE,labels=NULL,append=FALSE)
 # any args appearing after ... on arg list must be named explicitly and cannot be partially matched
 #------- 2.9 Scoping Rules - Symbol Binding ---#
+# lm exists in the stats package, but can be redefined
+lm <- function(x) {x*x}
+lm
+# Binding - searches through a series of packages in Environment, chooses the 
+search()  # global environment is always first and base package is always last, new packages are added after Global
+# R has separate namespaces for functions and non-functions, so it is possible to have an object named c and a function named c
+# Scoping Rules:
+# R uses lexical scoping or static scoping (not dynamic scoping)
+f <- function(x,y) {
+  x^2 + y / z   # z is free-variable, which was not previously mentioned in function
+}
+# the values of free vars are searched for in the env in which the function was defined
+#  where an environment is a collection of (symbol,value) pairs
+# every environment has a parent environment, it is posible to have multiple children
+# a function + an environment = a closure or function closure
+# if not in env where function was defined, searches in 1) parent env 2) search down the parent envs
+# until hitting top-level env (usually global, or package namespace) 3) continue search until empty env, error is thrown if not found
 #------- 2.10 Scoping Rules - R Scoping Rules ---#
 #------- 2.11 Scoping Rules - Optimization Example ---#
 #------- 2.12 Coding Standards ---#
