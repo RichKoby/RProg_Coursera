@@ -86,7 +86,6 @@ unclass(x)
 x <- factor(c("yes","yes","no","yes","no"), levels = c("yes","no"))
 x
 unclass(x)
-
 #------- 1.9 Data Types - Missing Values -----#
 # is.na() - missing values
 # is.nan() - undefined mathematical operations
@@ -391,7 +390,73 @@ f <- function(x,y) {
 # if not in env where function was defined, searches in 1) parent env 2) search down the parent envs
 # until hitting top-level env (usually global, or package namespace) 3) continue search until empty env, error is thrown if not found
 #------- 2.10 Scoping Rules - R Scoping Rules ---#
+# Key diff in R is that you can define functions inside other functions
+make.power <- function(n) {
+  pow <- function(x) {
+    x^n
+  }
+  pow
+}
+cube <- make.power(3)
+square <- make.power(2)
+cube(3)
+cube(2)
+square(3)
+ls(environment(cube))
+get("n",environment(cube))
+ls(environment(square))
+get("n",environment(square))
+y <- 10
+f <- function(x) {
+  y <- 2
+  y^2 + g(x)
+}
+g <- function(x) {
+  x*y
+}
+f(3)
+g <- function(x) {
+  a <-3
+  x+a+y
+}
+g(2)
+y <- 3
+g(2)
+# Consequences of Lexical Scoping: 1) In R all objects are stored in memory
+# 2) all functions must carry a pointer to their respective environments, which can be anywhere
 #------- 2.11 Scoping Rules - Optimization Example ---#
+make.NegLogLik <- function(data, fixed=c(FALSE,FALSE)) {
+  params <- fixed
+  function(p) {
+    params[!fixed] <- p
+    mu <- params[1]
+    sigma <- params[2]
+    a <- -0.5*length(data)*log(2*pi*sigma^2)
+    b <- -0.5*sum((data-mu)^2) / (sigma^2)
+    -(a + b)
+  }
+}
+set.seed(1)
+normals <- rnorm(100,1,2)
+nLL <- make.NegLogLik(normals)
+nLL
+ls(environment(nLL))
+optim(c(mu=0,sigma=1),nLL)$par
+# fixing sigma = 2
+nLL <- make.NegLogLik(normals,c(FALSE,2))
+optimize(nLL,c(-1,3))$minimum
+# fixing mu = 1
+nLL <- make.NegLogLik(normals,c(1,FALSE))
+optimize(nLL,c(1e-6,10))$minimum
+# Plotting the Likelihood
+nLL <- make.NegLogLik(normals,c(1,FALSE))
+x <- seq(1.7,1.9,len=100)
+y <- sapply(x,nLL)
+plot(x,exp(-(y-min(y))),type="l")
+nLL <- make.NegLogLik(normals,c(FALSE,2))
+x <- seq(0.5,1.5,len=100)
+y <- sapply(x,nLL)
+plot(x,exp(-(y-min(y))),type="l")
 #------- 2.12 Coding Standards ---#
 #1. Always write code in text file/text editor
 #2. Indent your code (4+ spaces)
@@ -435,3 +500,135 @@ x - y
 x <- as.POSIXct("2012-10-25 01:00:00")
 y <- as.POSIXct("2012-10-25 06:00:00", tz="GMT")
 x - y
+
+#===== Week 3 ===========#
+#------- 3.1 Loop Functions - lapply ---#
+# lapply: Loop over a list and evaluate a function on each element
+lapply
+# lapply always returns a list
+x <- list(a=1:5, b=rnorm(10))
+lapply(x,mean)
+x <- list(a=1:4,b=rnorm(10),c=rnorm(20,1),d=rnorm(100,5))
+lapply(x,mean)
+x <- 1:4
+# runif generates a number of random uniform vars
+lapply(x,runif)
+lapply(x, runif, min=0,max=10)  # passes min and max elements through ... in lapply
+# annonymous functions
+x <- list(a=matrix(1:4,2,2),b=matrix(1:6,3,2))
+x
+lapply(x,function(elt) elt[,1])  # function to capture first column of matrices
+# sapply: Same as lapply but try to simplify result
+# if result is list where every element is length 1, then a vector is returned
+# if result is list where every element is vector of same length (>1), a matrix is returned
+# a list is returned if sapply can't establish a pattern
+x <- list(a=1:4,b=rnorm(10),c=rnorm(20,1),d=rnorm(100,5))
+lapply(x,mean)
+sapply(x,mean)
+mean(x)    # calling mean on list does not apply, so returns NA with warning
+#------- 3.2 Loop Functions - apply ---#
+# apply: Apply a function over the margins of an array
+# usually annonymous function, usually applied to rows or columns of matrix
+# can be used with general arrays - not really faster than loop, but easier to type
+str(apply)   # function (X, MARGIN, FUN, ...)
+# X is an array, MARGIN is int vector indicating which margins should be retained
+# FUN is function to be applied
+x <- matrix(rnorm(200),20,10)   # 20 rows, 10 columns
+apply(x,2,mean)    # takes mean of columns (2nd dimension)
+apply(x,1,mean)    # takes mean of rows (1st dimension)
+# col/row sums and means - optimized (much faster) functions for calculations:
+# rowSums = apply(x,1,sum)    rowMeans = apply(x,1,mean)
+# colSums = apply(x,2,sum)    colMeans = apply(x,2,mean)
+apply(x,1,quantile,probs=c(0.25,0.75))  # calc 25th and 75# for all 20 rows
+a <- array(rnorm(2*2*10),c(2,2,10))
+apply(a,c(1,2),mean)
+rowMeans(a,dims=2)
+#------- 3.3 Loop Functions - mapply ---#
+# mapply: Multivariate version of lapply
+str(mapply)
+#function (FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
+#MoreArgs is a list of other arguments to FUN
+#SIMPLIFY indicates whether the result should be simplified
+list(rep(1,4),rep(2,3),rep(3,2),rep(4,1))
+mapply(rep,1:4,4:1)    # does same thing as line before
+noise <- function(n,mean,sd) {rnorm(n,mean,sd)}
+noise(5,1,2)
+noise(1:5,1:5,2)   # does not do what I want with these vectors
+mapply(noise,1:5,1:5,2)
+list(noise(1,1,2),noise(2,2,2),noise(3,3,2),noise(4,4,2),noise(5,5,2))  # same as last line
+#------- 3.4 Loop Functions - tapply ---#
+# tapply: Apply a function over subsets of a vector
+str(tapply)
+#function (X, INDEX, FUN = NULL, ..., simplify = TRUE)
+#INDEX is a factor or list of factors
+x <- c(rnorm(10),runif(10),rnorm(10,1))
+f <- gl(3,10)
+f
+tapply(x,f,mean)
+tapply(x,f,mean,simplify=FALSE)
+tapply(x,f,range)
+#------- 3.5 Loop Functions - split ---#
+# split: auxiliary function also useful, particularly with lapply
+str(split)
+# function (x, f, drop = FALSE, ...)
+# x is a vector (or list) or data frame
+# f is a factor (or coerced to one) or a list of factors
+# drop indicates whether empty factor levels should be dropped
+x <- c(rnorm(10),runif(10),rnorm(10,1))
+f <- gl(3,10)
+split(x,f)
+lapply(split(x,f),mean)   # exact same as tapply example above
+library(datasets)
+head(airquality)
+s <- split(airquality,airquality$Month)  # splits data frame by month
+lapply(s,function(x) colMeans(x[, c("Ozone","Solar.R","Wind")]))
+sapply(s,function(x) colMeans(x[, c("Ozone","Solar.R","Wind")]))
+sapply(s,function(x) colMeans(x[, c("Ozone","Solar.R","Wind")],na.rm=TRUE))
+# splitting on more than one level
+x <- rnorm(10)
+f1 <- gl(2,5)
+f2 <- gl(5,2)
+f1
+f2
+interaction(f1,f2)
+str(split(x,list(f1,f2)))    # will automatically call interaction function
+str(split(x,list(f1,f2),drop=TRUE))
+#------- 3.6 Debugging Tools - Diagnosing the Problem ---#
+log(-1)  # Warning
+printmessage <- function(x) {
+    if(x > 0)
+        print("x is greater than zero")
+    else
+        print("x is less than or equal to zero")
+    invisible(x)
+}
+printmessage(1)
+printmessage(NA)   # Error
+printmessage2 <- function(x) {
+    if(is.na(x))
+        print("x is a missing value!")
+    else if(x > 0)
+        print("x is greater than zero")
+    else
+        print("x is less than or equal to zero")
+    invisible(x)
+}
+x <- log(-1)
+printmessage2(x)
+#------- 3.7 Debugging Tools - Basic Tools ---#
+# traceback - prints function call stack after error occurs, nothing if no error
+# recover - allows modification of error behavior to browse the function call stack
+# debug - flags function for debug mode, allowing step through execution 1 line/time
+# browser - suspends execution of function and puts function in debug
+# trace allows insertion of debugging code into function in specific places
+#------- 3.8 Debugging Tools - Using the Tools ---#
+mean(x)
+traceback()
+lm(y-x)
+traceback()
+debug(lm)
+lm(y-x)  # hit n for next until you get to error line
+options(error = recover)
+read.csv("nosuchfile")
+
+#===== Week 4 ===========#
